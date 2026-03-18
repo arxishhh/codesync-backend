@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.websocket.route import socket
+from src.websocket.routes import socket
 
 version = "v1"
 

@@ -9,8 +9,11 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+firebase_creds.json
 develop-eggs/
 dist/
+alembic.ini
+alembic
 downloads/
 eggs/
 .eggs/
