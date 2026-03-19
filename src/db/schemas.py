@@ -26,8 +26,8 @@ class User(SQLModel,table=True):
     updated_at : datetime = Field(sa_column=Column(pg.TIMESTAMP,
                                                    default=datetime.utcnow()))
     
-    documents : List["Document"] = Relationship(back_populates="users",
-                                                sa_relationship_kwargs={'lazy':'selectin'})
+    # documents : List["Document"] = Relationship(back_populates="users",
+    #                                             sa_relationship_kwargs={'lazy':'selectin'})
 
 
 class Document(SQLModel,table=True):
@@ -40,13 +40,13 @@ class Document(SQLModel,table=True):
                          default=uuid4()))
     
     title : str = Field(
-        sa_column=Column(pg.VARCHAR(10),
+        sa_column=Column(pg.VARCHAR(100),
                          nullable=False,
                          default="Untitled")
     )
-    content : bytes
-    created_by : str = Field(
-        sa_column = Column(pg.VARCHAR(),
+    content : bytes = Field(nullable=True)
+    created_by : UUID = Field(
+        sa_column = Column(pg.UUID(as_uuid =True),
                            nullable=False))
     
     created_at : datetime = Field(
@@ -57,7 +57,7 @@ class Document(SQLModel,table=True):
         sa_column=Column(pg.TIMESTAMP,
                          default=datetime.utcnow()))
     
-    users : List["User"] = Relationship(back_populates="documents",sa_relationship_kwargs={'lazy':'selectin'})
+    # users : List["User"] = Relationship(back_populates="documents",sa_relationship_kwargs={'lazy':'selectin'})
     
 
 

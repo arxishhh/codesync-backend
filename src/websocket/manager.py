@@ -28,6 +28,7 @@ class WebSocketManager:
             
             if not clients:
                 self.connected_clients.pop(doc_id)
+            
 
     
     async def send_message(self,websocket : WebSocket,message : Message,doc_id : str)  -> None:

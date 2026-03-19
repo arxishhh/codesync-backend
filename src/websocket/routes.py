@@ -1,20 +1,33 @@
 from fastapi.websockets import WebSocket,WebSocketDisconnect
 from fastapi import APIRouter
-from src.websocket.manager import WebSocketManager
+from src.dependencies import socketmanager
 from src.websocket.models import Message
 from src.websocket.handler import Handler
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
+from src.document.service import DocumentService
 from fastapi import Depends
 
 
-socketmanager = WebSocketManager()
-handler = Handler(socketmanager=socketmanager)
+
+handler = Handler()
+docService = DocumentService()
 socket = APIRouter()
 
 @socket.websocket('/ws/{doc_id}')
 async def websockets_endpoint(websocket : WebSocket,doc_id : str,session : AsyncSession = Depends(get_session)):
 
+    document = await docService.get_document(doc_id=doc_id,session=session)
+    if not document:
+        await websocket.accept()
+        await websocket.send_json(
+            {
+                "type":"error",
+                "message" : "Document_Not_Found"
+            })
+        await websocket.close()
+        return 
+    
     await socketmanager.connect(
         websocket=websocket,
         doc_id=doc_id)
@@ -28,7 +41,8 @@ async def websockets_endpoint(websocket : WebSocket,doc_id : str,session : Async
                 message=message,
                 websocket=websocket,
                 doc_id=doc_id,
-                session=session
+                session=session,
+                document=document
             )
     except WebSocketDisconnect:
         await socketmanager.disconnect(

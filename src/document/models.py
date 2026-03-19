@@ -12,7 +12,6 @@ class Document(BaseModel):
     updated_at : datetime
 
 class DocumentCreateModel(BaseModel):
-    uid : UUID
     title : str
     language : str
     created_by : UUID

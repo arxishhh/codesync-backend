@@ -2,6 +2,7 @@ from typing import Dict
 from y_py import YDoc,encode_state_as_update,apply_update
 from src.document.service import DocumentService
 from sqlmodel.ext.asyncio.session import AsyncSession
+from src.db.schemas import Document
 
 docService = DocumentService()
 
@@ -9,7 +10,7 @@ class DocumentManager:
     def __init__(self):
         self.documents : Dict[str,YDoc] = {}
 
-    async def get_or_create(self,doc_id : str,session : AsyncSession) -> YDoc | None:
+    async def get_or_create(self,doc_id : str,session : AsyncSession,document:Document) -> YDoc | None:
 
         if doc_id in self.documents:
             return self.documents[doc_id]
@@ -19,12 +20,6 @@ class DocumentManager:
             return doc
         
         ydoc = YDoc()
-        document = await docService.get_document(
-            doc_id=doc_id,
-            session = session)
-        
-        if not document:
-            return None
         
         if document and document.content:
             with ydoc.begin_transaction():
@@ -34,8 +29,8 @@ class DocumentManager:
         return ydoc
 
 
-    async def update(self,doc_id : str,updates : bytes,session : AsyncSession):
-        doc = await self.get_or_create(doc_id=doc_id,session=session)
+    async def update(self,doc_id : str,updates : bytes,session : AsyncSession,document:Document):
+        doc = await self.get_or_create(doc_id=doc_id,session=session,document=document)
 
         if not doc :
             return None
@@ -43,11 +38,15 @@ class DocumentManager:
         with doc.begin_transaction():
             apply_update(doc,updates)
 
-    async def get_state(self,doc_id : str,session : AsyncSession):
-        doc = await self.get_or_create(doc_id=doc_id,session=session)
+    async def get_state(self,doc_id : str,session : AsyncSession,document: Document):
+        doc = await self.get_or_create(doc_id=doc_id,session=session,document=document)
         if doc :
             return encode_state_as_update(doc)
         return None
+    
+    async def delete(self,doc_id : str):
+        if doc_id in self.documents:
+            self.documents.pop(doc_id)
 
 
 
