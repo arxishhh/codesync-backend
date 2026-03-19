@@ -3,6 +3,7 @@ from y_py import YDoc,encode_state_as_update,apply_update
 from src.document.service import DocumentService
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.schemas import Document
+from src.db.main import create_session
 
 docService = DocumentService()
 
@@ -46,6 +47,16 @@ class DocumentManager:
     
     async def delete(self,doc_id : str):
         if doc_id in self.documents:
+            state = self.documents[doc_id]
+            content = encode_state_as_update(state)
+            session= await create_session()
+
+            await docService.update_document(
+                doc_id=doc_id,
+                content=content,
+                session=session
+            )
+
             self.documents.pop(doc_id)
 
 

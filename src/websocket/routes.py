@@ -1,13 +1,11 @@
 from fastapi.websockets import WebSocket,WebSocketDisconnect
 from fastapi import APIRouter
-from src.dependencies import socketmanager
 from src.websocket.models import Message
 from src.websocket.handler import Handler
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from src.document.service import DocumentService
 from fastapi import Depends
-
 
 
 handler = Handler()
@@ -27,6 +25,8 @@ async def websockets_endpoint(websocket : WebSocket,doc_id : str,session : Async
             })
         await websocket.close()
         return 
+    
+    socketmanager = websocket.app.state.socketmanager
     
     await socketmanager.connect(
         websocket=websocket,

@@ -19,6 +19,8 @@ class WebSocketManager:
         
 
     async def disconnect(self,websocket:WebSocket,doc_id:str):
+
+        docmanager = websocket.app.state.docmanager
         logging.info(f"Disconnecting User: {websocket.client} from doc : {doc_id}")
 
         if doc_id in self.connected_clients:
@@ -28,6 +30,7 @@ class WebSocketManager:
             
             if not clients:
                 self.connected_clients.pop(doc_id)
+                docmanager.delete(doc_id=doc_id)
             
 
     

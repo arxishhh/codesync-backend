@@ -4,6 +4,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.document.models import DocumentCreateModel
 from datetime import datetime
 from typing import Dict
+import logging
 
 
 class DocumentService:
@@ -26,6 +27,7 @@ class DocumentService:
         return document
     
     async def update_document(self,content : bytes,doc_id : str,session : AsyncSession) -> Dict | None:
+
         document = await self.get_document(doc_id=doc_id,session=session)
 
         if document :
@@ -36,6 +38,7 @@ class DocumentService:
             await session.refresh(document)
             return document.model_dump()
         
+        logging.warning(f"Document {doc_id} Not Present in Database")
         return None
 
             

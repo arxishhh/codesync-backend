@@ -1,12 +1,9 @@
-from src.dependencies import docmanager
-from src.dependencies import socketmanager
 from fastapi import WebSocket
 from src.websocket.models import Message
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.schemas import Document
 import base64
 import logging
-
 
 
 class Handler:
@@ -36,8 +33,10 @@ class Handler:
 
     async def join(self,websocket : WebSocket,doc_id : str,session : AsyncSession,document : Document,payload = None):
         logging.info(f"Fetching Document {doc_id} For {websocket.client}")
-    
-        doc = await self.sync(doc_id=doc_id,session=session,
+
+        socketmanager = websocket.app.state.socketmanger
+        
+        doc = await self.sync(doc_id=doc_id,session=session,websocket=websocket,
         document=document)
         if not doc :
             return None
@@ -45,7 +44,7 @@ class Handler:
         doc_encoded = base64.b64encode(doc).decode()
 
         message = {
-            'message_type' : 'sync',
+            'type' : 'sync',
             'payload':
             {
                 'state':doc_encoded
@@ -59,17 +58,23 @@ class Handler:
         )
 
 
-    async def sync(self,doc_id:str,session : AsyncSession,document : Document):
+    async def sync(self,doc_id:str,websocket : WebSocket,session : AsyncSession,document : Document):
+        
+        docmanager = websocket.app.state.docmanager
         return await docmanager.get_state(doc_id=doc_id,session=session,
         document=document)
 
     async def leave(self,websocket : WebSocket, doc_id : str,session : AsyncSession,payload = None):
+        socketmanager = websocket.app.state.socketmanger
         await socketmanager.disconnect(
             websocket=websocket,
             doc_id=doc_id
         )
 
     async def apply_update(self,websocket : WebSocket,doc_id : str,session : AsyncSession,payload,document : Document):
+
+        socketmanager = websocket.app.state.socketmanger
+        docmanager = websocket.app.state.docmanager
 
         if not payload or 'update' not in payload:
             logging.error("Update Not Present In Payload")
@@ -88,7 +93,7 @@ class Handler:
             document=document
         )
 
-        message = {'message_type':"update",
+        message = {'type':"update",
                    'payload':{
                        'content':payload['update']
                    }}
