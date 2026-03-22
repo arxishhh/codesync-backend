@@ -7,14 +7,16 @@ import logging
 class WebSocketManager:
     def __init__(self):
         self.connected_clients : Dict[str,Set[WebSocket]] = {}
+        self.client_meta : Dict[WebSocket,Dict] = {}
     
-    async def connect(self,websocket:WebSocket,doc_id:str):
+    async def connect(self,websocket:WebSocket,doc_id:str,user_details:dict):
         
         logging.info(f"Connected doc: {doc_id} using {websocket.client}")
         await websocket.accept()
         if doc_id not in self.connected_clients:
             self.connected_clients[doc_id] = set()
         
+        self.client_meta[websocket] = user_details
         self.connected_clients[doc_id].add(websocket)
         
 
@@ -27,6 +29,7 @@ class WebSocketManager:
 
             clients = self.connected_clients[doc_id]
             clients.discard(websocket)
+            self.client_meta.pop(websocket)
             
             if not clients:
                 self.connected_clients.pop(doc_id)
@@ -58,7 +61,9 @@ class WebSocketManager:
                     message=message,
                     doc_id=doc_id
                 ))
+            
+            await asyncio.gather(*tasks,return_exceptions=True)
         
-        await asyncio.gather(*tasks,return_exceptions=True)
+
     
     

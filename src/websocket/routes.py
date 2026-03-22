@@ -1,6 +1,6 @@
 from fastapi.websockets import WebSocket,WebSocketDisconnect
 from fastapi import APIRouter
-from src.websocket.models import Message
+from src.websocket.models import Message,UserDetails
 from src.websocket.handler import Handler
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
@@ -14,11 +14,11 @@ socket = APIRouter()
 inviteService = InviteService()
 
 @socket.websocket('/ws/{token}')
-async def websockets_endpoint(websocket : WebSocket,token : str,session : AsyncSession = Depends(get_session)):
+async def websockets_endpoint(websocket : WebSocket,token : str,user_details : UserDetails,session : AsyncSession = Depends(get_session)):
 
-    data = await inviteService.deserialize(token=token)
-    
-    if not data :
+    token_data = await inviteService.deserialize(token=token)
+
+    if not token_data :
         await handler.error(
             websocket=websocket,
             message={
@@ -30,7 +30,7 @@ async def websockets_endpoint(websocket : WebSocket,token : str,session : AsyncS
         )
         return 
     
-    doc_id = data.get("doc_id")
+    doc_id = token_data.get("doc_id")
 
     document = await docService.get_document(doc_id=doc_id,session=session)
     if not document:
@@ -49,7 +49,8 @@ async def websockets_endpoint(websocket : WebSocket,token : str,session : AsyncS
     
     await socketmanager.connect(
         websocket=websocket,
-        doc_id=doc_id)
+        doc_id=doc_id,
+        user_details=user_details.model_dump())
     
     try:
         while True:
@@ -59,7 +60,7 @@ async def websockets_endpoint(websocket : WebSocket,token : str,session : AsyncS
             await handler.handler(
                 message=message,
                 websocket=websocket,
-                doc_id=doc_id,
+                token_data=token_data,
                 session=session,
                 document=document
             )

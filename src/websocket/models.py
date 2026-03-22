@@ -10,9 +10,16 @@ class Type(str,Enum):
     LEAVE = "leave"
     SYNC = "sync"
     ERROR = "error"
+    USER_JOINED = "user_joined"
+    USER_LEFT = "user_left"
+    CURSOR = "cursor"
     
-
-
 class Message(BaseModel):
     message_type : Type
     payload : Optional[Dict[str,Any]] = None
+
+
+class UserDetails(BaseModel):
+    user_id : str
+    username : str
+    color : str
