@@ -9,6 +9,7 @@ class Type(str,Enum):
     AWARENESS = "awareness"
     LEAVE = "leave"
     SYNC = "sync"
+    ERROR = "error"
     
 
 

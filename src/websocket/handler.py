@@ -102,7 +102,12 @@ class Handler:
             sender=websocket,
             message = Message(**message),
             doc_id = doc_id)
-
+        
+    
+    async def error(self,websocket : WebSocket,message : dict):
+        await websocket.accept()
+        await websocket.send_json(message)
+        await websocket.close()
         
 
 

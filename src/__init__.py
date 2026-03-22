@@ -27,6 +27,6 @@ codesync.include_router(
 )
 codesync.include_router(
     router=docroute,
-    prefix = f"/api/{version}/doc",
+    prefix = f"/api/{version}/documents",
     tags=['document']
 )

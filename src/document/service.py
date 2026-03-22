@@ -2,10 +2,17 @@ from sqlmodel import select
 from src.db.schemas import Document
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.document.models import DocumentCreateModel
+from itsdangerous.url_safe import URLSafeSerializer
 from datetime import datetime
 from typing import Dict
 import logging
+from src.config import Config
 
+
+serializer = URLSafeSerializer(
+    secret_key=Config.SERIALIZER_SECRET,
+    salt="codesync"
+)
 
 class DocumentService:
     
@@ -41,7 +48,26 @@ class DocumentService:
         logging.warning(f"Document {doc_id} Not Present in Database")
         return None
 
-            
+
+class InviteService:
+
+    async def serialize(self,doc_id : str,permission:str):
+        try : 
+            return serializer.dumps(
+            {
+                "doc_id":doc_id,
+                "permission":permission
+            })
+        except Exception as e:
+            logging.error(f"Could not serialize data :{str(e)}")
+        
+    async def deserialize(self,token : str):
+        try : 
+            return serializer.loads(token)
+        except Exception as e:
+            logging.error(f"Could not do this I dont know what: {str(e)}")
+
+
 
 
 
